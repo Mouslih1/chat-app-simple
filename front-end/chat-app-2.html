@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.4.0/sockjs.js"></script>
+</head>
+<body>
+    <div>
+        <input type="text" name="input" id="message">
+        <button id="btn">send</button>
+    </div>
+
+    <div id="recievedMsg">
+
+    </div>
+
+    <script>
+        var stompClient = null;
+        $(document).ready(function(){
+
+            createConnection();
+
+            $('#btn').click(function(){
+                var message = $('#message').val();
+
+                
+                sendMessage(message);
+                $('#recievedMsg').append('<span> You : ' + message + '</span><br>');
+                $('#message').val('');
+            });
+
+
+            function createConnection()
+            {
+                var socket = new SockJS('http://localhost:8090/chat-app');
+                stompClient = Stomp.over(socket);
+                stompClient.connect({}, function(connectionData){
+                    console.log('connectiondata',connectionData);
+                    stompClient.subscribe('/simple/publish2', function(data){
+                        console.log('data',data.body);
+                        $('#recievedMsg').append('<span> Sender : ' + data.body + '</span><br>');
+                    })
+                });
+            }
+
+            function sendMessage(message)
+            {
+                stompClient.send('/app/user2',{}, message);
+            }
+        });
+    </script>
+</body>
+</html>
